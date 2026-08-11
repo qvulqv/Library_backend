@@ -1,21 +1,20 @@
 
-from sqlalchemy import Column, Integer, String, DateTime, ForeignKey, NVARCHAR
+from sqlalchemy import Column, Integer, String, DateTime, ForeignKey, NVARCHAR, Unicode
 from sqlalchemy.orm import relationship
 from database import Base
 import datetime
 
 
 
-# 1. Mô hình đại diện cho bảng BanDoc
 class BanDoc(Base):
-    __tablename__ = "BanDoc" 
-
-    MaBanDoc = Column(String(20), primary_key=True, index=True)
-    HoTenDem = Column(NVARCHAR(100), nullable=False)
-    Ten = Column(NVARCHAR(50), nullable=False)
-    SDT = Column(String(15))
-    Email = Column(String(100))
-
+    __tablename__ = "BanDoc"
+    
+    MaBanDoc = Column(String, primary_key=True, index=True) # Mã SV không có tiếng Việt, để String
+    HoTenDem = Column(Unicode) # Thay String thành Unicode
+    Ten = Column(Unicode)      # Thay String thành Unicode
+    SDT = Column(String)       # Số điện thoại không có tiếng Việt
+    Email = Column(String)     # Email không có tiếng Việt
+    TrangThai = Column(Unicode) # Trạng thái có tiếng Việt (ví dụ: "Hoạt động")
 # 2. Mô hình đại diện cho bảng NXB (Nhà xuất bản)
 class NXB(Base):
     __tablename__ = "NXB"
