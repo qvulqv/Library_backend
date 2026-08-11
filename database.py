@@ -25,3 +25,10 @@ SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 # Base: Lớp nền tảng để sau này chúng ta định nghĩa cấu trúc bảng (Models)
 Base = declarative_base()
+# Hàm cung cấp phiên làm việc (Session) cho các API
+def get_db():
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()

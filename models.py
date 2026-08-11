@@ -16,23 +16,25 @@ class BanDoc(Base):
     Email = Column(String)     # Email không có tiếng Việt
     TrangThai = Column(Unicode) # Trạng thái có tiếng Việt (ví dụ: "Hoạt động")
 # 2. Mô hình đại diện cho bảng NXB (Nhà xuất bản)
+
 class NXB(Base):
     __tablename__ = "NXB"
-
-    MaNXB = Column(Integer, primary_key=True, index=True, autoincrement=True)
-    TenNXB = Column(NVARCHAR(255), nullable=False)
-    DiaChi = Column(NVARCHAR(500))
-    Email = Column(String(100))
-
+    MaNXB = Column(Integer, primary_key=True, index=True) # Kiểu số nguyên (INT)
+    TenNXB = Column(Unicode)
+    DiaChi = Column(Unicode)
+    Email = Column(String)
 # 3. Mô hình đại diện cho bảng DauSach
 class DauSach(Base):
     __tablename__ = "DauSach"
-
-    MaDauSach = Column(Integer, primary_key=True, index=True, autoincrement=True)
-    TenSach = Column(NVARCHAR(255), nullable=False)
-    TacGia = Column(NVARCHAR(255))
-    LinhVuc = Column(NVARCHAR(100))
+    
+    MaDauSach = Column(String, primary_key=True, index=True)
+    TenSach = Column(Unicode) 
+    
+    # Khai báo các cột Khóa ngoại trỏ đến các bảng danh mục tương ứng
+    MaTacGia = Column(String, ForeignKey("TacGia.MaTacGia"))
+    MaTheLoai = Column(String, ForeignKey("TheLoai.MaTheLoai"))
     MaNXB = Column(Integer, ForeignKey("NXB.MaNXB"))
+    
 
 # 4. Mô hình đại diện cho bảng Sach
 class Sach(Base):
@@ -73,6 +75,7 @@ class ChiTietPhieuMuon(Base):
     # Trạng thái của riêng cuốn sách này: "Chưa trả", "Đã trả", "Làm mất"
     TrangThaiSach = Column(NVARCHAR(50), default="Chưa trả")
     NgayTraThucTe = Column(DateTime, nullable=True)
+
 # ==========================================
 # 7. MÔ HÌNH BẢNG TÀI KHOẢN (PHỤC VỤ ĐĂNG NHẬP VÀ PHÂN QUYỀN)
 # ==========================================
@@ -90,3 +93,22 @@ class TaiKhoan(Base):
     
     # Mã người dùng để liên kết với bảng BanDoc hoặc thông tin Nhân viên
     MaNguoiDung = Column(String(50), nullable=False)
+class TacGia(Base):
+    __tablename__ = "TacGia"
+    MaTacGia = Column(String, primary_key=True, index=True)
+    TenTacGia = Column(Unicode)
+
+class TheLoai(Base):
+    __tablename__ = "TheLoai"
+    MaTheLoai = Column(String, primary_key=True, index=True)
+    TenTheLoai = Column(Unicode)
+    MoTa = Column(Unicode)
+
+class KeSach(Base):
+    __tablename__ = "KeSach"
+    MaKeSach = Column(String, primary_key=True, index=True)
+    TenKeSach = Column(Unicode)
+    ViTri = Column(Unicode)
+
+
+
