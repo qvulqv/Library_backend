@@ -1,31 +1,29 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
+from pydantic import BaseModel
 import models
 from database import get_db
 
-router = APIRouter(tags=["Quản lý Sách"])
+router = APIRouter(tags=["Xác thực & Đăng nhập"])
 
-@router.get("/sach")
-def lay_danh_sach_sach(db: Session = Depends(get_db)):
+class ThongTinDangNhap(BaseModel):
+    TenDangNhap: str
+    MatKhau: str
+
+@router.post("/dang-nhap")
+def dang_nhap(thong_tin: ThongTinDangNhap, db: Session = Depends(get_db)):
     try:
-        danh_sach_sach = db.query(
-            models.Sach.MaSach,
-            models.Sach.TrangThai,
-            models.DauSach.TenSach,
-            models.DauSach.MaTacGia
-        ).join(
-            models.DauSach, 
-            models.Sach.MaDauSach == models.DauSach.MaDauSach
-        ).all()
-        
-        ket_qua = []
-        for sach in danh_sach_sach:
-            ket_qua.append({
-                "ma_sach": sach.MaSach,
-                "ten_sach": sach.TenSach,
-                "tac_gia": sach.MaTacGia,
-                "trang_thai": sach.TrangThai
-            })
-        return ket_qua
+        tai_khoan = db.query(models.TaiKhoan).filter(models.TaiKhoan.TenDangNhap == thong_tin.TenDangNhap).first()
+        if not tai_khoan or tai_khoan.MatKhau != thong_tin.MatKhau:
+            raise HTTPException(status_code=401, detail="Tên đăng nhập hoặc mật khẩu không chính xác!")
+            
+        return {
+            "thong_bao": "Đăng nhập thành công!",
+            "vai_tro": tai_khoan.VaiTro,
+            "ma_nguoi_dung": tai_khoan.MaNguoiDung,
+            "ten_dang_nhap": tai_khoan.TenDangNhap
+        }
+    except HTTPException:
+        raise 
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Lỗi cơ sở dữ liệu: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Lỗi hệ thống: {str(e)}")

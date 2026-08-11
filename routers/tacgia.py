@@ -54,3 +54,35 @@ def xoa_tac_gia(ma_tg: str, db: Session = Depends(get_db)):
     except Exception as e:
         db.rollback()
         raise HTTPException(status_code=400, detail="Không thể xóa do ràng buộc dữ liệu!")
+    from typing import List
+
+
+# API Thêm tác giả hàng loạt
+@router.post("/hang-loat")
+def them_tac_gia_hang_loat(danh_sach: List[ThongTinTacGia], db: Session = Depends(get_db)):
+    so_luong_thanh_cong = 0
+    loi_chi_tiet = []
+    
+    try:
+        for item in danh_sach:
+            # Kiểm tra xem mã tác giả đã tồn tại chưa
+            ton_tai = db.query(models.TacGia).filter(models.TacGia.MaTacGia == item.MaTacGia).first()
+            if ton_tai:
+                loi_chi_tiet.append(f"Mã {item.MaTacGia} đã tồn tại.")
+                continue
+                
+            tac_gia_moi = models.TacGia(
+                MaTacGia=item.MaTacGia,
+                TenTacGia=item.TenTacGia
+            )
+            db.add(tac_gia_moi)
+            so_luong_thanh_cong += 1
+            
+        db.commit()
+        return {
+            "thong_bao": f"Đã thêm thành công {so_luong_thanh_cong} tác giả.",
+            "loi": loi_chi_tiet
+        }
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail=f"Lỗi cơ sở dữ liệu: {str(e)}")
