@@ -91,3 +91,22 @@ def xoa_nxb(ma_nxb: int, db: Session = Depends(get_db)):
     except Exception as e:
         db.rollback()
         raise HTTPException(status_code=400, detail="Không thể xóa vì đang có sách liên kết với NXB này!")
+    # 5. API Cập nhật (Sửa) NXB
+@router.put("/{ma_nxb}")
+def cap_nhat_nxb(ma_nxb: int, du_lieu: ThongTinNXB, db: Session = Depends(get_db)):
+    try:
+        # Tìm NXB dựa vào mã số nguyên
+        nxb = db.query(models.NXB).filter(models.NXB.MaNXB == ma_nxb).first()
+        if not nxb:
+            raise HTTPException(status_code=404, detail="Không tìm thấy nhà xuất bản này!")
+            
+        # Ghi đè các thông tin mới (Bỏ qua MaNXB vì là Khóa chính)
+        nxb.TenNXB = du_lieu.TenNXB
+        nxb.DiaChi = du_lieu.DiaChi
+        nxb.Email = du_lieu.Email
+        
+        db.commit()
+        return {"thong_bao": "Đã cập nhật thông tin Nhà xuất bản thành công!"}
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail=f"Lỗi cơ sở dữ liệu: {str(e)}")

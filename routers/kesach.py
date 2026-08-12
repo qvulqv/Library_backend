@@ -11,11 +11,10 @@ router = APIRouter(
     tags=["Quản lý Kệ sách"]
 )
 
-# Cấu trúc dữ liệu cho Kệ sách
 class ThongTinKeSach(BaseModel):
     MaKeSach: str
     TenKeSach: str
-    ViTri: str = None # Vị trí có thể để trống
+    ViTri: str = None 
 
 # 1. API Lấy danh sách kệ sách
 @router.get("")
@@ -88,3 +87,21 @@ def xoa_ke_sach(ma_ks: str, db: Session = Depends(get_db)):
     except Exception as e:
         db.rollback()
         raise HTTPException(status_code=400, detail="Không thể xóa kệ sách này vì đang chứa đầu sách!")
+    # 5. API Cập nhật (Sửa) Kệ sách
+@router.put("/{ma_ks}")
+def cap_nhat_ke_sach(ma_ks: str, du_lieu: ThongTinKeSach, db: Session = Depends(get_db)):
+    try:
+        # Tìm kệ sách dựa vào mã chuỗi
+        ke_sach = db.query(models.KeSach).filter(models.KeSach.MaKeSach == ma_ks).first()
+        if not ke_sach:
+            raise HTTPException(status_code=404, detail="Không tìm thấy kệ sách này!")
+            
+        # Ghi đè thông tin mới (Bỏ qua MaKeSach vì là Khóa chính)
+        ke_sach.TenKeSach = du_lieu.TenKeSach
+        ke_sach.ViTri = du_lieu.ViTri
+        
+        db.commit()
+        return {"thong_bao": "Đã cập nhật thông tin Kệ sách thành công!"}
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail=f"Lỗi cơ sở dữ liệu: {str(e)}")

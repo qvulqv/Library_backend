@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from database import engine
 import models
 from fastapi.middleware.cors import CORSMiddleware
-from routers import tacgia, bandoc, sach, theloai, auth, nxb, kesach
+from routers import tacgia, bandoc, sach, theloai, auth, nxb, kesach, dausach
 
 # Khởi tạo bảng trong SQL Server
 models.Base.metadata.create_all(bind=engine)
@@ -31,6 +31,7 @@ app.include_router(theloai.router)
 app.include_router(auth.router)
 app.include_router(nxb.router)
 app.include_router(kesach.router)
+app.include_router(dausach.router)
 # API Trang chủ kiểm tra hệ thống
 @app.get("/")
 def kiem_tra_he_thong():

@@ -14,7 +14,7 @@ router = APIRouter(
 class ThongTinTheLoai(BaseModel):
     MaTheLoai: str
     TenTheLoai: str
-    MoTa: str = None # Mô tả có thể để trống
+    MoTa: str = None 
 
 # 1. API Lấy danh sách thể loại
 @router.get("/")
@@ -87,3 +87,19 @@ def xoa_the_loai(ma_tl: str, db: Session = Depends(get_db)):
     except Exception as e:
         db.rollback()
         raise HTTPException(status_code=400, detail="Không thể xóa thể loại này vì đang có đầu sách liên kết!")
+    # 5. API Sửa thể loại
+@router.put("/{ma_tl}")
+def cap_nhat_the_loai(ma_tl: str, du_lieu: ThongTinTheLoai, db: Session = Depends(get_db)):
+    try:
+        the_loai = db.query(models.TheLoai).filter(models.TheLoai.MaTheLoai == ma_tl).first()
+        if not the_loai:
+            raise HTTPException(status_code=404, detail="Không tìm thấy thể loại này!")
+            
+        the_loai.TenTheLoai = du_lieu.TenTheLoai
+        the_loai.MoTa = du_lieu.MoTa
+        
+        db.commit()
+        return {"thong_bao": "Đã cập nhật thông tin thể loại thành công!"}
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail=f"Lỗi cơ sở dữ liệu: {str(e)}")

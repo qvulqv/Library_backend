@@ -1,23 +1,19 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from pydantic import BaseModel
-
-# Gọi mô hình dữ liệu và cấu hình CSDL từ thư mục gốc bên ngoài
 import models 
 from database import get_db
 
-# Khởi tạo Router (Bản sao thu nhỏ của app)
 router = APIRouter(
-    prefix="/tacgia",        # Tất cả API trong tệp này đều tự động có /tacgia ở đầu
-    tags=["Quản lý Tác giả"] # Giúp phân nhóm gọn gàng nếu em xem tài liệu Swagger UI
+    prefix="/tacgia",        
+    tags=["Quản lý Tác giả"] 
 )
 
-# Cấu trúc dữ liệu
 class ThongTinTacGia(BaseModel):
     MaTacGia: str
     TenTacGia: str
 
-# 1. API Lấy danh sách (Đường dẫn giờ chỉ là "/")
+# 1. API Lấy danh sách 
 @router.get("/")
 def lay_danh_sach_tac_gia(db: Session = Depends(get_db)):
     return db.query(models.TacGia).all()
@@ -57,7 +53,7 @@ def xoa_tac_gia(ma_tg: str, db: Session = Depends(get_db)):
     from typing import List
 
 
-# API Thêm tác giả hàng loạt
+# 4 API Thêm tác giả hàng loạt
 @router.post("/hang-loat")
 def them_tac_gia_hang_loat(danh_sach: List[ThongTinTacGia], db: Session = Depends(get_db)):
     so_luong_thanh_cong = 0
@@ -83,6 +79,23 @@ def them_tac_gia_hang_loat(danh_sach: List[ThongTinTacGia], db: Session = Depend
             "thong_bao": f"Đã thêm thành công {so_luong_thanh_cong} tác giả.",
             "loi": loi_chi_tiet
         }
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail=f"Lỗi cơ sở dữ liệu: {str(e)}")
+    # 5. API Cập nhật (Sửa) tác giả
+@router.put("/{ma_tg}")
+def cap_nhat_tac_gia(ma_tg: str, du_lieu: ThongTinTacGia, db: Session = Depends(get_db)):
+    try:
+        # Tìm tác giả trong CSDL
+        tac_gia = db.query(models.TacGia).filter(models.TacGia.MaTacGia == ma_tg).first()
+        if not tac_gia:
+            raise HTTPException(status_code=404, detail="Không tìm thấy tác giả này!")
+            
+        # Chỉ cập nhật Tên tác giả (Không cập nhật Mã vì là Khóa chính)
+        tac_gia.TenTacGia = du_lieu.TenTacGia
+        
+        db.commit()
+        return {"thong_bao": "Đã cập nhật thông tin tác giả thành công!"}
     except Exception as e:
         db.rollback()
         raise HTTPException(status_code=500, detail=f"Lỗi cơ sở dữ liệu: {str(e)}")

@@ -1,5 +1,5 @@
 
-from sqlalchemy import Column, Integer, String, DateTime, ForeignKey, NVARCHAR, Unicode
+from sqlalchemy import Column, Integer, String, DateTime, ForeignKey, NVARCHAR, Unicode, Table
 from sqlalchemy.orm import relationship
 from database import Base
 import datetime
@@ -24,26 +24,59 @@ class NXB(Base):
     DiaChi = Column(Unicode)
     Email = Column(String)
 # 3. Mô hình đại diện cho bảng DauSach
+# ==========================================
+# KHAI BÁO CÁC BẢNG TRUNG GIAN (CẦU NỐI)
+# ==========================================
+
+# Cầu nối: Đầu sách - Tác giả
+dausach_tacgia = Table('DauSach_TacGia', Base.metadata,
+    Column('MaDauSach', String(50), ForeignKey('DauSach.MaDauSach'), primary_key=True),
+    Column('MaTacGia', String(50), ForeignKey('TacGia.MaTacGia'), primary_key=True)
+)
+
+# Cầu nối: Đầu sách - Thể loại
+dausach_theloai = Table('DauSach_TheLoai', Base.metadata,
+    Column('MaDauSach', String(50), ForeignKey('DauSach.MaDauSach'), primary_key=True),
+    Column('MaTheLoai', String(50), ForeignKey('TheLoai.MaTheLoai'), primary_key=True)
+)
+
+# Cầu nối: Đầu sách - Nhà xuất bản (Lưu ý: MaNXB là Integer thì giữ nguyên)
+dausach_nxb = Table('DauSach_NXB', Base.metadata,
+    Column('MaDauSach', String(50), ForeignKey('DauSach.MaDauSach'), primary_key=True),
+    Column('MaNXB', Integer, ForeignKey('NXB.MaNXB'), primary_key=True)
+)
+
+# 3. ĐỊNH NGHĨA LỚP ĐẦU SÁCH
 class DauSach(Base):
     __tablename__ = "DauSach"
     
-    MaDauSach = Column(String, primary_key=True, index=True)
-    TenSach = Column(Unicode) 
-    
-    # Khai báo các cột Khóa ngoại trỏ đến các bảng danh mục tương ứng
-    MaTacGia = Column(String, ForeignKey("TacGia.MaTacGia"))
-    MaTheLoai = Column(String, ForeignKey("TheLoai.MaTheLoai"))
-    MaNXB = Column(Integer, ForeignKey("NXB.MaNXB"))
-    
+    MaDauSach = Column(Integer, primary_key=True, index=True)
+    TenSach = Column(Unicode(255), nullable=False) # Phải là TenSach
 
+    # Các relationship bên dưới giữ nguyên...
+    tac_gia = relationship("TacGia", secondary=dausach_tacgia, backref="cac_dau_sach")
+    the_loai = relationship("TheLoai", secondary=dausach_theloai, backref="cac_dau_sach")
+    nha_xuat_ban = relationship("NXB", secondary=dausach_nxb, backref="cac_dau_sach")
+
+    __table_args__ = {'extend_existing': True}
 # 4. Mô hình đại diện cho bảng Sach
 class Sach(Base):
     __tablename__ = "Sach"
-
+    
     MaSach = Column(String(50), primary_key=True, index=True)
-    TrangThai = Column(NVARCHAR(50), default="Sẵn sàng")
+    TrangThai = Column(Unicode(50), default="Sẵn sàng")
+    TinhTrang = Column(Unicode(100)) 
+    
     MaDauSach = Column(Integer, ForeignKey("DauSach.MaDauSach"))
-    MaKe = Column(Integer, nullable=True)
+    
+    # CHÚ Ý CHỖ NÀY: Phải là MaKeSach (không phải MaKe)
+    MaKeSach = Column(String(20), ForeignKey("KeSach.MaKeSach")) 
+
+    # Mối quan hệ (relationship)
+    dau_sach = relationship("DauSach", backref="cac_cuon_sach")
+    ke_sach = relationship("KeSach", backref="cac_cuon_sach")
+
+    __table_args__ = {'extend_existing': True}
 
 # 5. Bảng Phiếu Mượn (Thông tin chung)
 class PhieuMuon(Base):
