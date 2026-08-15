@@ -22,7 +22,7 @@ class ThongTinBanDocMoi(BaseModel):
     Email: str
 
 # 1. Lấy danh sách bạn đọc
-@router.get("/")
+@router.get("")
 def lay_danh_sach_ban_doc(db: Session = Depends(get_db)):
     danh_sach_db = db.query(models.BanDoc).all()
     ket_qua = []

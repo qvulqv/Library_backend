@@ -17,12 +17,12 @@ class ThongTinTheLoai(BaseModel):
     MoTa: str = None 
 
 # 1. API Lấy danh sách thể loại
-@router.get("/")
+@router.get("")
 def lay_danh_sach_the_loai(db: Session = Depends(get_db)):
     return db.query(models.TheLoai).all()
 
 # 2. API Thêm mới một thể loại
-@router.post("/")
+@router.post("")
 def them_the_loai(du_lieu: ThongTinTheLoai, db: Session = Depends(get_db)):
     try:
         ton_tai = db.query(models.TheLoai).filter(models.TheLoai.MaTheLoai == du_lieu.MaTheLoai).first()
